@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Cod. Sinais Mult.</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js"></script>
+    <script>
+      hljs.initHighlightingOnLoad();
+    </script>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
+    <!-- Font Awesome icons (free version)-->
+    <script
+      src="https://use.fontawesome.com/releases/v5.15.3/js/all.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Google fonts-->
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="../css/styles.css" rel="stylesheet" />
+  </head>
+  <body id="page-top">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+      <div class="container">
+        <a class="navbar-brand" href="../index.html#page-top"
+          ><img src="../assets/img/ufabc.png" alt="..."
+        /></a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarResponsive"
+          aria-controls="navbarResponsive"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          Menu
+          <i class="fas fa-bars ms-1"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="../index.html#portfolio"
+                >Laboratórios</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../index.html#timeline">Aulas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../index.html#team">Quem somos nós</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- Masthead-->
+    <header class="masthead"></header>
+    <div class="mt-5 row justify-content-center">
+      <div class="col-lg-8">
+        <div class="modal-body">
+          <!-- Project details-->
+          <h2 class="text-uppercase">Lab 2: Aquisição de Video</h2>
+          <audio controls class="mb-3">
+            <source src="../assets/audio/lab2.mp3" type="audio/mpeg" />
+          </audio>
+
+          <p class="mt-5 item-intro">
+            Neste laboratório, temos como objetivo a captura,processamento e
+            tratamento de imagens, e para isto, iniciamos os procedimentos
+            realizando capturas de fotografias do grupo e também de cada membro
+            do grupo individualmente que posteriormente foram usadas para uma
+            foto montagem com avatares pokemon.
+          </p>
+          <p>
+            Além disso também realizamos a gravação de dois videos, um
+            apresentando a disciplina e outro com movimentos rápidos.
+          </p>
+          <p>
+            Então utilizando o Google Colab que nos permite trabalhar com
+            códigos python na nuvem realizamos o tratamento das imagens e videos
+            usando bibliotecas e ferramentas como opencv, pyplot e ffmpeg.
+          </p>
+          <pre>
+                        <code class="python">
+    import os
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import cv2 as cv
+    from google.colab import drive
+    from google.colab.patches import cv2_imshow as gcv_imshow
+
+    drive.mount('/content/drive/')
+    base_path = "/content/drive/My Drive/Colab Notebooks/csm/lab2"
+    
+                        </code>
+                    </pre>
+          <h3>Trabalhando com imagens</h3>
+          <br />
+          <p>
+            Para realizar esse laboratório, foi criada uma fotomontagem com as
+            fotos individuais de cada integrante do grupo para criar uma imagem
+            única com todos. Essa fotomontagem possui o tamnho de 2560x1920
+            pixels.
+          </p>
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/grupo.jpg"
+            width="1920"
+          />
+          <br />
+          <p>
+            Também criamos uma fotomontagem com os avatares de cada pessoa do
+            grupo
+          </p>
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/grupo-avatares.jpg"
+            width="640"
+          />
+          <br />
+          <h4>Alterando resolução de imagens</h4>
+          <p>
+            Através do python foi feita a redução das imagens para 50% e 25% do
+            tamanho original usando o código abaixo
+          </p>
+          <pre>
+                        <code class="python">
+    img_grupo = cv.imread(base_path + "/grupo.jpg")                      
+    
+    print("Tamanho original:", img_grupo.shape)
+    img_50 = cv.resize(img_grupo, None, fx=0.50, fy=0.50, interpolation = cv.INTER_CUBIC)
+    print("Tamanho após redução de 50%", img_50.shape)
+    img_25 = cv.resize(img_grupo, None, fx=0.25, fy=0.25, interpolation = cv.INTER_CUBIC)
+    print("Tamanho após redução de 25%", img_25.shape)
+
+                        </code>
+                    </pre>
+          <p>A redução pode ser vista no exemplo abaixo</p>
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/grupo_50.png"
+            width="630"
+          />
+          <br />
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/grupo_25.png"
+            width="315"
+          />
+
+          <br />
+          <br />
+          <br />
+          <h4>Alterando as imagens para as cores Preto e Branco</h4>
+          <p>
+            Realizamos o procedimento de alteração de imagem para gerarmos a
+            versão P&B das imagens dos integrantes do grupo e de seus supostos
+            avatares. Segue abaixo o codigo utilizado para criação de tais
+            imagens, bem como o código para exibir a imagem original e sua
+            versão P&B lado a lado.
+          </p>
+          <pre>
+                        <code class="python">
+    def plot_pb_side_by_side(img):
+        grey = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+        grey_3_channel = cv.cvtColor(grey, cv.COLOR_GRAY2BGR)
+        horizontal_stack = np.hstack((img, grey_3_channel))
+        gcv_imshow(horizontal_stack)
+    
+    
+    alunos_avatares = ["artur-lazarini-avatar.jpg", "cesar-seiji-avatar.jpg", "eric-souza-avatar.jpg", "wellington-araujo-avatar.jpg"]
+    
+    for aluno in alunos_avatares:
+        img = cv.imread(base_path + "/" + aluno)
+        plot_pb_side_by_side(img)
+        print("\n\n")
+        print("\n\n\n")
+        plot_pb_side_by_side(img_grupo)
+                        </code>
+                    </pre>
+          <p>
+            Executamos então o código acima para cada fotomontagem do integrante
+            com seu avatar, o resultou nas imagens abaixo
+          </p>
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/artur-pb.png"
+            width="640"
+          />
+          <br />
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/cesar-pb.png"
+            width="640"
+          />
+          <br />
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/eric-pb.png"
+            width="640"
+          />
+          <br />
+          <img
+            class="img-fluid d-block mx-auto"
+            src="../assets/labs/lab2/wellington-pb.png"
+            width="640"
+          />
+
+          <br />
+          <br />
+          <br />
+          <h3>Trabalhando com Vídeos</h3>
+          <p>
+            Continuamos utilizando o Google Colab o tratamento dos videos
+            capturados. Um dos vídeos possui Onde, um dos videos é o video de
+            apresentação da disciplina pelos integrantes do grupo, enquanto o
+            segundo vídeo apresenta movimentos mais rápidos e pequeno intervalo
+            de execução entre os movimentos.
+          </p>
+          <p>
+            Em cada versão dos vídeos, nós realizamos a alteração de resolução
+            da captura do vídeo, sendo a primeira versão possuindo 50% da
+            resolução inicial e a segunda versão possuindo 25% da resolução
+            inicial.
+          </p>
+          <p>
+            Segue abaixo a versão dos videos capturados, sem nenhuma alteração
+            em sua resolução.
+          </p>
+
+          <div class="d-flex justify-content-center">
+            <video height="480" style="margin-right: 5px" controls>
+              <source src="../assets/labs/lab2/o-grupo.mp4" type="video/mp4" />
+            </video>
+            <video height="480" style="margin-left: 5px" controls>
+              <source
+                src="../assets/labs/lab2/video-movimentos-rapidos-30fps.mp4"
+                type="video/mp4"
+              />
+            </video>
+          </div>
+          <br />
+          <br />
+          <br />
+          <h3>Alterando a resolução dos vídeos</h3>
+          <p>
+            Realizamos as mudanças de resoluções em 50% e 25% para ambos os
+            videos utilizando o codigo abaixo que utiliza a ferramenta
+            <a href="https://ffmpeg.org/">ffmpeg</a>.
+          </p>
+          <pre>
+                    <code class="bash">
+    # video 1
+    !ffmpeg -i "/content/drive/My Drive/Colab Notebooks/csm/lab2/o-grupo.mp4" -vf scale=960:540 -preset slow -crf 18 "/content/drive/My Drive/Colab Notebooks/csm/lab2/o-grupo_50.mp4" -y
+    !ffmpeg -i "/content/drive/My Drive/Colab Notebooks/csm/lab2/o-grupo.mp4" -vf scale=480:270 -preset slow -crf 18 "/content/drive/My Drive/Colab Notebooks/csm/lab2/o-grupo_25.mp4" -y
+    
+    # video 2
+    !ffmpeg -i "/content/drive/My Drive/Colab Notebooks/csm/lab2/video-movimentos-rapidos-30fps.mp4" -vf scale=960:540 -preset slow -crf 18 "/content/drive/My Drive/Colab Notebooks/csm/lab2/video-movimentos-rapidos-30fps_50.mp4" -y
+    !ffmpeg -i "/content/drive/My Drive/Colab Notebooks/csm/lab2/video-movimentos-rapidos-30fps.mp4" -vf scale=480:270 -preset slow -crf 18 "/content/drive/My Drive/Colab Notebooks/csm/lab2/video-movimentos-rapidos-30fps_25.mp4" -y
+                    </code>
+                </pre>
+          <p>
+            Segue os videos com as resoluções alteradas em 50% e 25%, juntamente
+            com o codigo utilizado para visualização dos videos.
+          </p>
+          <br />
+          <pre>
+                    <code class="bash">
+    # Video do Grupo                      
+    with open(base_path+"/o-grupo_50.mp4",'rb') as file:
+        grupo_50 = "data:video/mp4;base64," + b64encode(file.read()).decode()
+    with open(base_path+"/o-grupo_25.mp4",'rb') as file:
+        grupo_25 = "data:video/mp4;base64," + b64encode(file.read()).decode()
+    
+    HTML(f"""
+    &lt;video height=270 controls&gt;&lt;source src= {grupo_25} type="video/mp4"&gt;&lt;/video&gt;
+    &lt;video height=540 controls&gt;&lt;source src= {grupo_50} type="video/mp4"&gt;&lt;/video&gt;
+    """)
+
+    # Video com movimentos rápidos
+    with open(base_path+"/video-movimentos-rapidos-30fps_50.mp4",'rb') as file:
+        mov_rapidos_50 = "data:video/mp4;base64," + b64encode(file.read()).decode()
+    with open(base_path+"/video-movimentos-rapidos-30fps_25.mp4",'rb') as file:
+        mov_rapidos_25 = "data:video/mp4;base64," + b64encode(file.read()).decode()
+
+    HTML(f"""
+    &lt;video height=270 controls&gt;&lt;source src= {mov_rapidos_25} type="video/mp4"&gt;&lt;/video&gt;
+    &lt;video height=540 controls&gt;&lt;source src= {mov_rapidos_50} type="video/mp4"&gt;&lt;/video&gt;
+    """)                      
+    
+                    </code>
+                </pre>
+          <br />
+          <div class="d-flex justify-content-center">
+            <video height="240" class="mr-5" style="margin-right: 5px" controls>
+              <source
+                src="../assets/labs/lab2/o-grupo_50.mp4"
+                type="video/mp4"
+              />
+            </video>
+
+            <video height="120" class="ml-5" style="margin-left: 5px" controls>
+              <source
+                src="../assets/labs/lab2/o-grupo_25.mp4"
+                type="video/mp4"
+              />
+            </video>
+          </div>
+          <br />
+          <br />
+          <div class="d-flex justify-content-center">
+            <video height="240" class="mr-5" controls>
+              <source
+                src="../assets/labs/lab2/video-movimentos-rapidos-30fps_50.mp4"
+                type="video/mp4"
+              />
+            </video>
+            <video height="120" class="ml-5" controls>
+              <source
+                src="../assets/labs/lab2/video-movimentos-rapidos-30fps_25.mp4"
+                type="video/mp4"
+              />
+            </video>
+          </div>
+          <br /><br /><br />
+          <h4>
+            Todo o código realizado para processamento se encontra no link
+            abaixo:
+          </h4>
+          <div class="d-flex justify-content-center">
+            <a
+              href="https://colab.research.google.com/drive/1g3L1YfwlRMhKPPOW0UyZcsuKf34XiYWu"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <button class="btn btn-info btn-xl text-uppercase" type="button">
+                Jupyter Notebook
+              </button>
+            </a>
+          </div>
+          <br /><br />
+          <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+              <p class="large text-muted"></p>
+            </div>
+          </div>
+          <a href="../index.html">
+            <button class="btn btn-primary btn-xl text-uppercase" type="button">
+              Voltar
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="py-5">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-4 col-sm-6 my-3">
+            <a href="https://docs.python.org/3/"
+              ><img
+                class="img-fluid img-brand d-block mx-auto"
+                src="../assets/img/logos/python.png"
+                alt="..."
+            /></a>
+          </div>
+          <div class="col-md-4 col-sm-6 my-3">
+            <a href="https://www.ufabc.edu.br/"
+              ><img
+                class="img-fluid img-brand d-block mx-auto"
+                src="../assets/img/logos/ufabc.png"
+                alt="..."
+            /></a>
+          </div>
+          <div class="col-md-4 col-sm-6 my-3">
+            <a href="https://moodle.ufabc.edu.br/course/view.php?id=2433"
+              ><img
+                class="img-fluid img-brand d-block mx-auto"
+                src="../assets/img/logos/moodle.png"
+                alt="..."
+            /></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="">
+      <img src="../assets/img/before-footer.jpg" alt="" />
+    </div>
+    <!-- Footer-->
+    <footer class="footer py-4">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-4"></div>
+          <div class="col-lg-4 my-3 my-lg-0">
+            <a
+              class="btn btn-dark btn-social mx-2"
+              href="https://www.instagram.com/ufabc/"
+              ><i class="fab fa-instagram"></i
+            ></a>
+            <a
+              class="btn btn-dark btn-social mx-2"
+              href="https://www.facebook.com/ufabc/"
+              ><i class="fab fa-facebook-f"></i
+            ></a>
+            <a
+              class="btn btn-dark btn-social mx-2"
+              href="https://www.linkedin.com/school/ufabc/"
+              ><i class="fab fa-linkedin-in"></i
+            ></a>
+          </div>
+          <div class="col-lg-4"></div>
+        </div>
+      </div>
+    </footer>
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="../js/scripts.js"></script>
+  </body>
+</html>

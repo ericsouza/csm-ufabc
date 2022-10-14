@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  my_jupyter:
+    image: jupyter/minimal-notebook
+    user: root
+    ports:
+      - "8888:8888"
+    environment:
+      GRANT_SUDO: "yes"
+    volumes:
+      - type: bind
+        source: .
+        target: /home/jovyan/work

@@ -2,3 +2,6 @@ NEW_LAB_NUMBER := $(shell ls labs/ | cut -d "b" -f 2 | cut -d . -f 1 | sort | ta
 
 new-lab:
 	@cp labs/lab1.html labs/lab${NEW_LAB_NUMBER}.html
+
+run-jupyter:
+	@docker-compose up

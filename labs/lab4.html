@@ -76,11 +76,1435 @@
         <div class="modal-body">
           <!-- Project details-->
           <h2 class="text-uppercase">Lab 4: Codificação de Imagem com DWT</h2>
-          <br>
-          <br>
-          <iframe
+          <br />
+          <br />
+<!-- 
+          <h1 id="esti019-csm-lab4">ESTI019 - CSM - Lab4</h1>
+          <h1 id="lab4-codifica-o-de-imagem-com-dwt">
+            Lab4 - Codificação de Imagem com DWT
+          </h1>
+          <p>A. Objetivos:</p>
+          <ol>
+            <li>
+              Efetuar a Codificação de Imagem e a Decodificação por DWT e IDWT
+            </li>
+            <li>Testar funções de Codificação Multinível</li>
+            <li>
+              Verificar a taxa de compressão só com a Componente de Aproximação
+            </li>
+          </ol>
+          <pre><code class="lang-python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+<span class="hljs-keyword">import</span> cv2 <span class="hljs-keyword">as</span> cv
+<span class="hljs-keyword">import</span> pywt
+<span class="hljs-keyword">import</span> pywt.<span class="hljs-keyword">data</span>
+<span class="hljs-keyword">import</span> matplotlib.image <span class="hljs-keyword">as</span> mpimg
+<span class="hljs-keyword">import</span> matplotlib.pyplot <span class="hljs-keyword">as</span> plt
+</code></pre>
+          <p>Codificação de Luminância (P&amp;B) com DWT para a Pimentas</p>
+          <pre><code class="lang-python">img = mpimg.imread('files/lab4/peppers.png')
+
+img_gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+
+
+coefs2 = pywt.dwt2(img_gray,'haar', mode='periodization')  #<span class="hljs-number">1</span> nível de DWT
+(cA, (cH, cV, cD)) = coefs2 #Separando os coeficientes
+imgr = pywt.idwt2(coefs2, 'haar', mode = 'periodization')  #<span class="hljs-number">1</span> nível de IDWT
+
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA,'gray'); plt.title(<span class="hljs-string">"CA - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV,'gray'); plt.title(<span class="hljs-string">"CV - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH,'gray'); plt.title(<span class="hljs-string">"CH - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD,'gray'); plt.title(<span class="hljs-string">"CD - Bordas Diagonais"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'CD - Bordas Diagonais'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_5_1.png" alt="png" /></p>
+          <p>
+            Cálculo do Erro Quadrático Médio (MSE) e da Relação Sinal Ruído de
+            Pico (PSNR)
+          </p>
+          <p>
+            A MSE é obtida calculando somando-se o erro quadrático de
+            reconstrução pixel a pixel entre a Imagem Original (O) da
+            Reconstruída (R) e normalizando pela dimensão (LxA) da imagem:
+          </p>
+          <p>
+            $ MSE = \frac{1}{LA}{\sum<em>{i=0}^L}{\sum</em>{j=0}^A [O(i,j) -
+            R(i,j)]^2}$
+          </p>
+          <pre><code class="lang-python"># Calculo da MSE P&amp;B
+A, L, Camadas = img.shape
+dif = img_gray - imgr
+MSE_gray = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif,<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif)))/(A*L)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"MSE_Y = {:.2e}"</span>.format(MSE_gray))
+</code></pre>
+          <pre><code><span class="hljs-attr">MSE_Y</span> = <span class="hljs-number">1.62</span>e-<span class="hljs-number">13</span>
+</code></pre>
+          <p>
+            A SNR de pico (PSNR) é definida para cada plano componente da imagem
+            como:
+          </p>
+          <p>$ PSNR = 10.log_{10} \left( \frac{{MAX_I}^2}{MSE} \right) $</p>
+          <p>
+            sendo $MAX_I$ o valor máximo do pixel, que para 8 bits equivale a
+            255, logo:
+          </p>
+          <p>$ PSNR = 20.log<em>{10}(255) - 10.log</em>{10} (MSE) $</p>
+          <p>
+            OBS.: Para uma imagem RGB, $ MSE = MSE_R + MSE_G + MSE_B $, sendo
+            similar definiação para YCrCb e HSV
+          </p>
+          <pre><code class="lang-python">PSNR_Y = <span class="hljs-number">20</span>*np.log10(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*np.log10(MSE_gray)
+print(<span class="hljs-string">"PSNR_Luma = {:.2f} dB"</span>.format(PSNR_Y))
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+infograf = <span class="hljs-string">"Imagem Reconstruída de Luminância (Y) com PSNR = "</span> + str(np.uint8(PSNR_Y)) + ' dB'
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(img_gray,'gray'); plt.title(<span class="hljs-string">"Imagem Original P&amp;B"</span>)
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr,'gray'); plt.title(infograf)
+</code></pre>
+          <pre><code>PSNR_Luma = <span class="hljs-number">176.03</span> dB
+
+
+
+
+
+Text(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, 'Imagem Reconstruída de Luminância (<span class="hljs-name">Y</span>) com PSNR = <span class="hljs-number">176</span> dB')
+</code></pre>
+          <p><img src="lab4/output_10_2.png" alt="png" /></p>
+          <p>Teste das Funções de Multiresolução wavedec2() e waverec2()</p>
+          <pre><code class="lang-python">C = pywt.wavedec<span class="hljs-number">2</span><span class="hljs-comment">(img_gray,'haar', mode = 'symmetric', level=2)</span> <span class="hljs-attr"># Dois níveis de decomposição DWT
+imgr2</span> = pywt.waverec<span class="hljs-number">2</span><span class="hljs-comment">(C, 'haar', mode = 'symmetric')</span> <span class="hljs-attr"># Dois níveis de IDWT
+
+# Para extrair os coeficientes de cada nível
+cA2</span> = C[<span class="hljs-number">0</span>]  <span class="hljs-attr"># Coeficientes de Aproximação nível 2</span>
+<span class="hljs-comment">(cH1, cV1, cD1)</span> = C[<span class="hljs-number">-1</span>] <span class="hljs-attr"># Coeficientes de Detalhes nível 1</span>
+<span class="hljs-comment">(cH2, cV2, cD2)</span> = C[<span class="hljs-number">-2</span>] <span class="hljs-attr"># Coeficientes de Detalhes nível 2</span>
+
+<span class="hljs-attr"># Imagem Original
+img_gray = cv.cvtColor(img, cv.COLOR_BGR2</span>GRAY)
+
+<span class="hljs-attr"># Plot dos coeficientes do nível 2</span>
+plt.figure<span class="hljs-comment">(figsize=(5,5)</span>)
+plt.subplot<span class="hljs-comment">(2,2,1)</span>
+plt.imshow<span class="hljs-comment">(cA2, 'gray')</span>; plt.title<span class="hljs-comment">('Ap. N2: CA2')</span>
+plt.subplot<span class="hljs-comment">(2,2,2)</span>
+plt.imshow<span class="hljs-comment">(cV2, 'gray')</span>; plt.title<span class="hljs-comment">('B. V. N2: CV2')</span>
+plt.subplot<span class="hljs-comment">(2,2,3)</span>
+plt.imshow<span class="hljs-comment">(cH2, 'gray')</span>; plt.title<span class="hljs-comment">('B. H. N2: CH2')</span>
+plt.subplot<span class="hljs-comment">(2,2,4)</span>
+plt.imshow<span class="hljs-comment">(cD2, 'gray')</span>; plt.title<span class="hljs-comment">('B. D. N2: CD2')</span>
+
+<span class="hljs-attr"># Plot Original e Reconstrução
+plt.figure(figsize=(20</span>,<span class="hljs-number">10</span>))
+plt.subplot<span class="hljs-comment">(1,2,1)</span>; plt.imshow<span class="hljs-comment">(img_gray,'gray')</span>; plt.title<span class="hljs-comment">('Imagem Original')</span>
+plt.subplot<span class="hljs-comment">(1,2,2)</span>; plt.imshow<span class="hljs-comment">(imgr2,'gray')</span>; plt.title<span class="hljs-comment">('Imagem Reconstruída')</span>
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_12_1.png" alt="png" /></p>
+          <p><img src="lab4/output_12_2.png" alt="png" /></p>
+          <p>Efetuar uma &quot;Montagem&quot; com wavedec2() e wavedecn()</p>
+          <p>1º Nível</p>
+          <pre><code class="lang-python"><span class="hljs-attr">CV1</span> = cV1.copy()
+<span class="hljs-attr">CH1</span> = cH1.copy()
+<span class="hljs-attr">CD1</span> = cD1.copy()
+</code></pre>
+          <p>2º Nível</p>
+          <pre><code class="lang-python"><span class="hljs-attr">CA2</span> = cA2.copy()
+<span class="hljs-attr">CH2</span> = cH2.copy()
+<span class="hljs-attr">CV2</span> = cV2.copy()
+<span class="hljs-attr">CD2</span> = cD2.copy()
+<span class="hljs-comment"># Matriz Final Completa</span>
+<span class="hljs-attr">CA1</span> = np.bmat([[CA2,CV2],[CH2,CD2]])
+<span class="hljs-attr">CC</span> = np.bmat([[CA1,CV1],[CH1,CD1]])
+</code></pre>
+          <pre><code class="lang-python"><span class="hljs-selector-tag">plt</span><span class="hljs-selector-class">.figure</span>(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+<span class="hljs-selector-tag">plt</span><span class="hljs-selector-class">.imshow</span>(CC,<span class="hljs-string">'gray'</span>)
+<span class="hljs-selector-tag">plt</span><span class="hljs-selector-class">.title</span>(<span class="hljs-string">'Codificação de Imagem em multinível com função wavedec2()'</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Codificação de Imagem em multinível com função wavedec2()'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_18_1.png" alt="png" /></p>
+          <p>Reconstrução de Imagem Colorida</p>
+          <pre><code class="lang-python"><span class="hljs-comment"># Imagem Original</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(img); plt.title(<span class="hljs-string">"Imagem Original"</span>)
+
+<span class="hljs-comment"># Codificação por planos de cores</span>
+<span class="hljs-comment"># Plano Vermelho</span>
+coefs_R = pywt.dwt2(img[:,:,<span class="hljs-number">0</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT R</span>
+(cA_R, (cH_R, cV_R, cD_R)) = coefs_R <span class="hljs-comment">#Separando os coeficientes</span>
+cr_R = pywt.idwt2(coefs_R, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT R</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CA_Red - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CV_Red - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CH_Red - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CD_Red - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_R, <span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Red"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída Red'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_20_1.png" alt="png" /></p>
+          <p><img src="lab4/output_20_2.png" alt="png" /></p>
+          <p><img src="lab4/output_20_3.png" alt="png" /></p>
+          <pre><code class="lang-python"># Plano Verde
+coefs_G = pywt.dwt2(img[:,:,<span class="hljs-number">1</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de DWT G
+(cA_G, (cH_G, cV_G, cD_G)) = coefs_G #Separando os coeficientes
+cr_G = pywt.idwt2(coefs_G, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de IDWT G
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CA_Green - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CV_Green - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CH_Green - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CD_Green - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_G, <span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Reconstruída Green"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída Green'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_21_1.png" alt="png" /></p>
+          <p><img src="lab4/output_21_2.png" alt="png" /></p>
+          <pre><code class="lang-python"># Plano Azul
+coefs_B = pywt.dwt2(img[:,:,<span class="hljs-number">2</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de DWT B
+(cA_B, (cH_B, cV_B, cD_B)) = coefs_B #Separando os coeficientes
+cr_B = pywt.idwt2(coefs_B, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de IDWT B
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CA_Blue - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CV_Blue - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CH_Blue - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CD_Blue - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_B, <span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Reconstruída Blue"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída Blue'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_22_1.png" alt="png" /></p>
+          <p><img src="lab4/output_22_2.png" alt="png" /></p>
+          <pre><code class="lang-python"># Reconstrução Nível <span class="hljs-number">1</span> Colorida 
+A1, L1 = cA_R.shape
+imgrec1 = <span class="hljs-built_in">np</span>.zeros((A1,L1,<span class="hljs-number">3</span>))
+imgrec1[:,:,<span class="hljs-number">0</span>] = cA_R.<span class="hljs-built_in">copy</span>()
+imgrec1[:,:,<span class="hljs-number">1</span>] = cA_G.<span class="hljs-built_in">copy</span>()
+imgrec1[:,:,<span class="hljs-number">2</span>] = cA_B.<span class="hljs-built_in">copy</span>()
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.imshow(imgrec1); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Reconstruída DWT/IDWT Nível 1"</span>)
+</code></pre>
+          <pre><code>Clipping <span class="hljs-selector-tag">input</span> data to the valid range <span class="hljs-keyword">for</span> imshow with RGB data ([<span class="hljs-number">0</span>..<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> floats or [<span class="hljs-number">0</span>..<span class="hljs-number">255</span>] <span class="hljs-keyword">for</span> integers).
+
+
+
+
+
+<span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída DWT/IDWT Nível 1'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_23_2.png" alt="png" /></p>
+          <p>
+            Salvando as Aproximações e depois fazendo download dos arquivos,
+            calcular a taxa de compressão com o original
+          </p>
+          <pre><code class="lang-python"><span class="hljs-meta"># obtenha aproximação de NÍVEL 1 e converte para inteiro</span>
+C1 = pywt.wavedec2(img_gray,<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">1</span>) <span class="hljs-meta"># Um nível de decomposição DWT</span>
+CA1_ = <span class="hljs-number">255</span> * C1[<span class="hljs-number">0</span>] / np.<span class="hljs-built_in">abs</span>(C1[<span class="hljs-number">0</span>]).max()
+CA1_ = CA1_.astype(<span class="hljs-built_in">int</span>)
+
+<span class="hljs-meta"># aproximação de NÍVEL 2 - ja´obtido no item (D) e converte para inteiro</span>
+CA2_ = <span class="hljs-number">255</span> * cA2 / np.<span class="hljs-built_in">abs</span>(cA2).max()
+CA2_ = CA2_.astype(<span class="hljs-built_in">int</span>)
+
+<span class="hljs-meta"># Salva no drive</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/peppers_DWT_N1_Y.bmp'</span>, CA1_) <span class="hljs-meta"># Aproximação Nível 1 só Y</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/peppers_DWT_N2_Y.bmp'</span>, CA2_) <span class="hljs-meta"># Aproximação Nível 2 só Y</span>
+</code></pre>
+          <pre><code><span class="hljs-literal">True</span>
+</code></pre>
+          <pre><code class="lang-python">import os
+tamanho = os<span class="hljs-selector-class">.path</span><span class="hljs-selector-class">.getsize</span>(<span class="hljs-string">'files/lab4/peppers_DWT_N1_Y.bmp'</span>)
+<span class="hljs-function"><span class="hljs-title">print</span><span class="hljs-params">(tamanho)</span></span>
+</code></pre>
+          <pre><code><span class="hljs-number">50230</span>
+</code></pre>
+          <p>
+            Gravando o Arquivo Codificado DWT/IDWT nível 1 Colorido, calcular a
+            taxa de compressão com o original
+          </p>
+          <pre><code class="lang-python"><span class="hljs-meta"># Aproximação Nível 1 Colorida </span>
+<span class="hljs-meta"># converte RGB para BGR e converte para inteiro</span>
+imgrec1_ = np.zeros((A1,L1,<span class="hljs-number">3</span>))
+imgrec1_[:,:,<span class="hljs-number">0</span>] = imgrec1[:,:,<span class="hljs-number">2</span>] 
+imgrec1_[:,:,<span class="hljs-number">1</span>] = imgrec1[:,:,<span class="hljs-number">1</span>] 
+imgrec1_[:,:,<span class="hljs-number">2</span>] = imgrec1[:,:,<span class="hljs-number">0</span>] 
+imgrec1_ = ( <span class="hljs-number">255</span> * imgrec1_ / np.abs(imgrec1_).max() ).astype(<span class="hljs-keyword">int</span>)
+
+<span class="hljs-meta"># Salva no drive</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/peppers_DWT_N1_colorida.bmp'</span>, imgrec1_) # Gravando Aproximação Nível <span class="hljs-number">1</span> Colorida
+</code></pre>
+          <pre><code><span class="hljs-literal">True</span>
+</code></pre>
+          <p>
+            Reconstrução da Imagem colorida e Cálculo da MSE de cada plano de
+            cor e da PSNR total
+          </p>
+          <pre><code class="lang-python"># Reconstrução Colorida Original
+A,L = imgr2.shape
+imgrec = <span class="hljs-built_in">np</span>.zeros((A,L,<span class="hljs-number">3</span>))
+imgrec[:,:,<span class="hljs-number">0</span>] = cr_R.<span class="hljs-built_in">copy</span>()
+imgrec[:,:,<span class="hljs-number">1</span>] = cr_G.<span class="hljs-built_in">copy</span>()
+imgrec[:,:,<span class="hljs-number">2</span>] = cr_B.<span class="hljs-built_in">copy</span>()
+
+# Calculo <span class="hljs-keyword">do</span> MSE colorida
+dif2 = img - imgrec
+MSE_R = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">0</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">0</span>])))/(A*L) # Erro Quadrático Médio plano R
+MSE_G = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">1</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">1</span>])))/(A*L) # Erro Quadrático Médio plano G
+MSE_B = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">2</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">2</span>])))/(A*L) # Erro Quadrático Médio plano B
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"MSE_Red= {:.2e}"</span>.format(MSE_R), <span class="hljs-string">" MSE_Green= {:.2e}"</span>.format(MSE_G), <span class="hljs-string">" MSE_Blue= {:.2e}"</span>.format(MSE_B))
+
+# Cálculo da SNR de pico colorida (PSNR), <span class="hljs-number">3</span> camadas R, G e B
+PSNR = <span class="hljs-number">20</span>*<span class="hljs-built_in">np</span>.log10(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*<span class="hljs-built_in">np</span>.log10(MSE_R + MSE_G + MSE_B)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"PSNR total = {:.2f} dB"</span>.format(PSNR))
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+infograf2 = <span class="hljs-string">"Imagem Reconstruída com PSNR total = "</span> + str(<span class="hljs-built_in">np</span>.uint8(PSNR)) + ' dB'
+plt.imshow(imgrec); plt.<span class="hljs-built_in">title</span>(infograf2)
+</code></pre>
+          <pre><code>Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">4.28e-13</span>  MSE_Green= <span class="hljs-number">1.12e-13</span>  MSE_Blue= <span class="hljs-number">8.70e-14</span>
+PSNR total = <span class="hljs-number">170.16</span> dB
+
+
+
+
+
+Text(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, 'Imagem Reconstruída com PSNR total = <span class="hljs-number">170</span> dB')
+</code></pre>
+          <p><img src="lab4/output_30_3.png" alt="png" /></p>
+          <h1 id="i-repetindo-etapas-com-cada-componente">
+            I. Repetindo etapas com cada componente
+          </h1>
+          <h5 id="codifica-o-de-lumin-ncia-p-b-com-dwt-para-a-pimentas">
+            Codificação de Luminância (P&amp;B) com DWT para a Pimentas
+          </h5>
+          <h3 id="carregando-imagens">Carregando imagens</h3>
+          <pre><code class="lang-python"><span class="hljs-attr">img_files</span> = [<span class="hljs-string">"1.jpg"</span>,<span class="hljs-string">"2.jpg"</span>,<span class="hljs-string">"3.jpg"</span>,<span class="hljs-string">"4.jpg"</span>]
+</code></pre>
+          <pre><code class="lang-python">img = []
+img_gray = []
+
+<span class="hljs-keyword">for</span> x in img_files:
+
+    img_read = mpimg.imread(<span class="hljs-string">'files/lab4/'</span>+x)
+    img.append(img_read)
+    img_gray.append(cv.cvtColor(img_read, cv.COLOR_RGB2GRAY))
+imgr = []
+<span class="hljs-keyword">for</span> x in range(len(img_files)):
+    coefs2 = pywt.dwt2(img_gray[x],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-meta">#1 nível de DWT</span>
+    (cA, (cH, cV, cD)) = coefs2 <span class="hljs-meta">#Separando os coeficientes</span>
+    imgr.append(pywt.idwt2(coefs2, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>))  <span class="hljs-meta">#1 nível de IDWT</span>
+
+    plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+    plt.imshow(cA,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CA - Aproximação - Imagem "</span>+<span class="hljs-keyword">str</span>(x+<span class="hljs-number">1</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+    plt.imshow(cV,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CV - Bordas Verticais - Imagem "</span>+<span class="hljs-keyword">str</span>(x+<span class="hljs-number">1</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+    plt.imshow(cH,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CH - Bordas Horizontais- Imagem "</span>+<span class="hljs-keyword">str</span>(x+<span class="hljs-number">1</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+    plt.imshow(cD,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CD - Bordas Diagonais- Imagem "</span>+<span class="hljs-keyword">str</span>(x+<span class="hljs-number">1</span>))
+</code></pre>
+          <p><img src="lab4/output_35_0.png" alt="png" /></p>
+          <p><img src="lab4/output_35_1.png" alt="png" /></p>
+          <p><img src="lab4/output_35_2.png" alt="png" /></p>
+          <p><img src="lab4/output_35_3.png" alt="png" /></p>
+          <h3
+            id="c-lculo-do-erro-quadr-tico-m-dio-mse-e-da-rela-o-sinal-ru-do-de-pico-psnr-"
+          >
+            Cálculo do Erro Quadrático Médio (MSE) e da Relação Sinal Ruído de
+            Pico (PSNR)
+          </h3>
+          <pre><code class="lang-python"># Calculo da MSE P&amp;B
+MSE_gray = []
+<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(len(img)):
+    A, L, Camadas = img[x].shape
+    dif = img_gray[x] - imgr[x]
+    MSE_gray.<span class="hljs-built_in">append</span>(<span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif,<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif)))/(A*L))
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">"MSE_Y = {:.2e} - Imagem_"</span>.format(MSE_gray[x])+str(x+<span class="hljs-number">1</span>))
+</code></pre>
+          <pre><code><span class="hljs-attr">MSE_Y</span> = <span class="hljs-number">5.30</span>e-<span class="hljs-number">24</span> - Imagem_1
+<span class="hljs-attr">MSE_Y</span> = <span class="hljs-number">6.24</span>e-<span class="hljs-number">24</span> - Imagem_2
+<span class="hljs-attr">MSE_Y</span> = <span class="hljs-number">5.51</span>e-<span class="hljs-number">24</span> - Imagem_3
+<span class="hljs-attr">MSE_Y</span> = <span class="hljs-number">4.72</span>e-<span class="hljs-number">24</span> - Imagem_4
+</code></pre>
+          <pre><code class="lang-python"><span class="hljs-keyword">for</span> x <span class="hljs-built_in">in</span> range(len(img)):
+    PSNR_Y = <span class="hljs-number">20</span>*np.log10(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*np.log10(MSE_gray[x])
+    print(<span class="hljs-string">"PSNR_Luma = {:.2f} dB"</span>.<span class="hljs-built_in">format</span>(PSNR_Y)+<span class="hljs-string">" Imagem_"</span>+<span class="hljs-built_in">str</span>(x))
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+    infograf = <span class="hljs-string">"Imagem Reconstruída de Luminância (Y) com PSNR = "</span> + <span class="hljs-built_in">str</span>(np.uint8(PSNR_Y)) + <span class="hljs-string">' dB'</span>+<span class="hljs-string">"_Imagem_"</span>+<span class="hljs-built_in">str</span>(x)
+    plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(img_gray[x],<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"Imagem Original P&amp;B - Imagem_"</span>+<span class="hljs-built_in">str</span>(x))
+    plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr[x],<span class="hljs-string">'gray'</span>); plt.title(infograf)
+</code></pre>
+          <pre><code><span class="hljs-attr">PSNR_Luma</span> = <span class="hljs-number">280.88</span> dB Imagem_0
+<span class="hljs-attr">PSNR_Luma</span> = <span class="hljs-number">280.18</span> dB Imagem_1
+<span class="hljs-attr">PSNR_Luma</span> = <span class="hljs-number">280.72</span> dB Imagem_2
+<span class="hljs-attr">PSNR_Luma</span> = <span class="hljs-number">281.39</span> dB Imagem_3
+</code></pre>
+          <p><img src="lab4/output_38_1.png" alt="png" /></p>
+          <p><img src="lab4/output_38_2.png" alt="png" /></p>
+          <p><img src="lab4/output_38_3.png" alt="png" /></p>
+          <p><img src="lab4/output_38_4.png" alt="png" /></p>
+          <h3 id="teste-das-fun-es-de-multiresolu-o-wavedec2-e-waverec2-">
+            Teste das Funções de Multiresolução wavedec2() e waverec2()
+          </h3>
+          <pre><code class="lang-python"><span class="hljs-attr">C</span> = pywt.wavedec2(img_gray[x],<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">2</span>)
+</code></pre>
+          <pre><code class="lang-python">imgr2 = []
+C = []
+<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> range(<span class="hljs-built_in">len</span>(img)):
+    C.append(pywt.wavedec2(img_gray[x],<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">2</span>)) <span class="hljs-comment"># Dois níveis de decomposição DWT</span>
+    imgr2.append(pywt.waverec2(C[x], <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>)) <span class="hljs-comment"># Dois níveis de IDWT</span>
+
+    <span class="hljs-comment"># Para extrair os coeficientes de cada nível</span>
+    cA2 = C[x][<span class="hljs-number">0</span>]  <span class="hljs-comment"># Coeficientes de Aproximação nível 2</span>
+    (cH1, cV1, cD1) = C[x][<span class="hljs-number">-1</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 1</span>
+    (cH2, cV2, cD2) = C[x][<span class="hljs-number">-2</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 2</span>
+
+    <span class="hljs-comment"># Imagem Original</span>
+    <span class="hljs-comment"># img_gray[x] = cv.cvtColor(img, cv.COLOR_BGR2GRAY)</span>
+
+    <span class="hljs-comment"># Plot dos coeficientes do nível 2</span>
+    plt.figure(figsize=(<span class="hljs-number">5</span>,<span class="hljs-number">5</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+    plt.imshow(cA2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Ap. N2: CA2'</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+    plt.imshow(cV2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. V. N2: CV2'</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+    plt.imshow(cH2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. H. N2: CH2'</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+    plt.imshow(cD2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. D. N2: CD2'</span>)
+
+    <span class="hljs-comment"># Plot Original e Reconstrução</span>
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+    plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(img_gray[x],<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Imagem Original'</span>)
+    plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr2[x],<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Imagem Reconstruída'</span>)
+</code></pre>
+          <p><img src="lab4/output_41_0.png" alt="png" /></p>
+          <p><img src="lab4/output_41_1.png" alt="png" /></p>
+          <p><img src="lab4/output_41_2.png" alt="png" /></p>
+          <p><img src="lab4/output_41_3.png" alt="png" /></p>
+          <p><img src="lab4/output_41_4.png" alt="png" /></p>
+          <p><img src="lab4/output_41_5.png" alt="png" /></p>
+          <p><img src="lab4/output_41_6.png" alt="png" /></p>
+          <p><img src="lab4/output_41_7.png" alt="png" /></p>
+          <h3 id="efetuar-uma-montagem-com-wavedec2-e-wavedecn-">
+            Efetuar uma &quot;Montagem&quot; com wavedec2() e wavedecn()
+          </h3>
+          <pre><code class="lang-python">for x <span class="hljs-keyword">in</span> range(len(C)):
+
+    <span class="hljs-attr">cA2</span> = C[x][<span class="hljs-number">0</span>]  <span class="hljs-comment"># Coeficientes de Aproximação nível 2</span>
+    (cH1, cV1, cD1) = C[x][-<span class="hljs-number">1</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 1</span>
+    (cH2, cV2, cD2) = C[x][-<span class="hljs-number">2</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 2</span>
+
+    <span class="hljs-comment">#Primeiro nível</span>
+    <span class="hljs-attr">CV1</span> = cV1.copy()
+    <span class="hljs-attr">CH1</span> = cH1.copy()
+    <span class="hljs-attr">CD1</span> = cD1.copy()
+
+    <span class="hljs-comment">#Segundo nível</span>
+    <span class="hljs-attr">CA2</span> = cA2.copy()
+    <span class="hljs-attr">CH2</span> = cH2.copy()
+    <span class="hljs-attr">CV2</span> = cV2.copy()
+    <span class="hljs-attr">CD2</span> = cD2.copy()
+    <span class="hljs-comment"># Matriz Final Completa</span>
+    <span class="hljs-attr">CA1</span> = np.bmat([[CA2,CV2],[CH2,CD2]])
+    <span class="hljs-attr">CC</span> = np.bmat([[CA1,CV1],[CH1,CD1]])
+
+
+    plt.figure(<span class="hljs-attr">figsize=(20,20))</span>
+    plt.imshow(CC,'gray')
+    plt.title('Codificação de Imagem em multinível com função wavedec2() - Imagem '+str(x))
+</code></pre>
+          <p><img src="lab4/output_43_0.png" alt="png" /></p>
+          <p><img src="lab4/output_43_1.png" alt="png" /></p>
+          <p><img src="lab4/output_43_2.png" alt="png" /></p>
+          <p><img src="lab4/output_43_3.png" alt="png" /></p>
+          <h3 id="reconstru-o-de-imagem-colorida">
+            Reconstrução de Imagem Colorida
+          </h3>
+          <h4 id="vermelho">Vermelho</h4>
+          <pre><code class="lang-python">CA_R = []
+CR_R = []
+<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> range(<span class="hljs-built_in">len</span>(img)):
+
+    <span class="hljs-comment"># Imagem Original</span>
+
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.imshow(img[x]); plt.title(<span class="hljs-string">"Imagem Original - "</span>+str(x))
+
+    <span class="hljs-comment"># Codificação por planos de cores</span>
+    <span class="hljs-comment"># Plano Vermelho</span>
+    coefs_R = pywt.dwt2(img[x][:,:,<span class="hljs-number">0</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT R</span>
+    (cA_R, (cH_R, cV_R, cD_R)) = coefs_R <span class="hljs-comment">#Separando os coeficientes</span>
+    cr_R = pywt.idwt2(coefs_R, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT R</span>
+    CA_R.append(cA_R)
+    CR_R.append(cr_R)
+
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+    plt.imshow(cA_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CA_Red - Aproximação"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+    plt.imshow(cV_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CV_Red - Bordas Verticais"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+    plt.imshow(cH_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CH_Red - Bordas Horizontais"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+    plt.imshow(cD_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CD_Red - Bordas Diagonais"</span>)
+
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.imshow(cr_R, <span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Red"</span>)
+</code></pre>
+          <p><img src="lab4/output_46_0.png" alt="png" /></p>
+          <p><img src="lab4/output_46_1.png" alt="png" /></p>
+          <p><img src="lab4/output_46_2.png" alt="png" /></p>
+          <p><img src="lab4/output_46_3.png" alt="png" /></p>
+          <p><img src="lab4/output_46_4.png" alt="png" /></p>
+          <p><img src="lab4/output_46_5.png" alt="png" /></p>
+          <p><img src="lab4/output_46_6.png" alt="png" /></p>
+          <p><img src="lab4/output_46_7.png" alt="png" /></p>
+          <p><img src="lab4/output_46_8.png" alt="png" /></p>
+          <p><img src="lab4/output_46_9.png" alt="png" /></p>
+          <p><img src="lab4/output_46_10.png" alt="png" /></p>
+          <p><img src="lab4/output_46_11.png" alt="png" /></p>
+          <h4 id="verde">Verde</h4>
+          <pre><code class="lang-python"><span class="hljs-meta"># Plano Verde</span>
+CA_G = []
+CR_G = []
+<span class="hljs-meta"># Imagem Original</span>
+<span class="hljs-function"><span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-title">range</span>(<span class="hljs-params">len(img</span>)):
+    plt.<span class="hljs-title">figure</span>(<span class="hljs-params">figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span></span>))
+    plt.<span class="hljs-title">imshow</span>(<span class="hljs-params">img[x]</span>)</span>; plt.title(<span class="hljs-string">"Imagem Original - "</span>+str(x))
+
+    coefs_G = pywt.dwt2(img[x][:,:,<span class="hljs-number">1</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-meta">#1 nível de DWT G</span>
+    (cA_G, (cH_G, cV_G, cD_G)) = coefs_G <span class="hljs-meta">#Separando os coeficientes</span>
+    cr_G = pywt.idwt2(coefs_G, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-meta">#1 nível de IDWT G</span>
+
+    CA_G.append(cA_G)
+    CR_G.append(cr_G)
+
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+    plt.imshow(cA_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CA_Green - Aproximação"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+    plt.imshow(cV_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CV_Green - Bordas Verticais"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+    plt.imshow(cH_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CH_Green - Bordas Horizontais"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+    plt.imshow(cD_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CD_Green - Bordas Diagonais"</span>)
+
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.imshow(cr_G, <span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Green"</span>)
+</code></pre>
+          <p><img src="lab4/output_48_0.png" alt="png" /></p>
+          <p><img src="lab4/output_48_1.png" alt="png" /></p>
+          <p><img src="lab4/output_48_2.png" alt="png" /></p>
+          <p><img src="lab4/output_48_3.png" alt="png" /></p>
+          <p><img src="lab4/output_48_4.png" alt="png" /></p>
+          <p><img src="lab4/output_48_5.png" alt="png" /></p>
+          <p><img src="lab4/output_48_6.png" alt="png" /></p>
+          <p><img src="lab4/output_48_7.png" alt="png" /></p>
+          <p><img src="lab4/output_48_8.png" alt="png" /></p>
+          <p><img src="lab4/output_48_9.png" alt="png" /></p>
+          <p><img src="lab4/output_48_10.png" alt="png" /></p>
+          <p><img src="lab4/output_48_11.png" alt="png" /></p>
+          <h4 id="azul">Azul</h4>
+          <pre><code class="lang-python"># Plano Azul
+CA_B = []
+CR_B = []
+<span class="hljs-keyword">for</span> x <span class="hljs-built_in">in</span> range(len(img)):
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.imshow(img[x]); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Original - "</span>+str(x))
+
+    coefs_B = pywt.dwt2(img[x][:,:,<span class="hljs-number">2</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de DWT B
+    (cA_B, (cH_B, cV_B, cD_B)) = coefs_B #Separando os coeficientes
+    cr_B = pywt.idwt2(coefs_B, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de IDWT B
+    CA_B.append(cA_B)
+    CR_B.append(cr_B)
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+    plt.imshow(cA_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CA_Blue - Aproximação"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+    plt.imshow(cV_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CV_Blue - Bordas Verticais"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+    plt.imshow(cH_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CH_Blue - Bordas Horizontais"</span>)
+    plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+    plt.imshow(cD_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CD_Blue - Bordas Diagonais"</span>)
+
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    plt.imshow(cr_B, <span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Reconstruída Blue"</span>)
+</code></pre>
+          <p><img src="lab4/output_50_0.png" alt="png" /></p>
+          <p><img src="lab4/output_50_1.png" alt="png" /></p>
+          <p><img src="lab4/output_50_2.png" alt="png" /></p>
+          <p><img src="lab4/output_50_3.png" alt="png" /></p>
+          <p><img src="lab4/output_50_4.png" alt="png" /></p>
+          <p><img src="lab4/output_50_5.png" alt="png" /></p>
+          <p><img src="lab4/output_50_6.png" alt="png" /></p>
+          <p><img src="lab4/output_50_7.png" alt="png" /></p>
+          <p><img src="lab4/output_50_8.png" alt="png" /></p>
+          <p><img src="lab4/output_50_9.png" alt="png" /></p>
+          <p><img src="lab4/output_50_10.png" alt="png" /></p>
+          <p><img src="lab4/output_50_11.png" alt="png" /></p>
+          <h4 id="reconstru-o-n-vel-1-colorida">
+            Reconstrução Nível 1 Colorida
+          </h4>
+          <pre><code class="lang-python"># Reconstrução Nível <span class="hljs-number">1</span> Colorida
+imgrec1_list = []
+<span class="hljs-symbol">for x in range(len(img)):</span>
+    c<span class="hljs-built_in">A_R</span> = C<span class="hljs-built_in">A_R</span>[x]
+    c<span class="hljs-built_in">A_G</span> = C<span class="hljs-built_in">A_G</span>[x]
+    c<span class="hljs-built_in">A_B</span> = C<span class="hljs-built_in">A_B</span>[x]
+
+    A1, L1 = c<span class="hljs-built_in">A_R</span>.shape
+    imgrec1 = np.zeros((A1,L1,<span class="hljs-number">3</span>))
+<span class="hljs-symbol">    imgrec1[:,:</span>,<span class="hljs-number">0</span>] = c<span class="hljs-built_in">A_R</span>.copy()
+<span class="hljs-symbol">    imgrec1[:,:</span>,<span class="hljs-number">1</span>] = c<span class="hljs-built_in">A_G</span>.copy()
+<span class="hljs-symbol">    imgrec1[:,:</span>,<span class="hljs-number">2</span>] = c<span class="hljs-built_in">A_B</span>.copy()
+    imgrec1_list.append(imgrec1)
+    plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+    plt.imshow(imgrec1)<span class="hljs-comment">; plt.title("Imagem Reconstruída DWT/IDWT Nível 1")</span>
+</code></pre>
+          <pre><code>Clipping input data <span class="hljs-built_in">to</span> <span class="hljs-keyword">the</span> valid range <span class="hljs-keyword">for</span> imshow <span class="hljs-keyword">with</span> RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] <span class="hljs-keyword">for</span> floats <span class="hljs-keyword">or</span> [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] <span class="hljs-keyword">for</span> integers).
+Clipping input data <span class="hljs-built_in">to</span> <span class="hljs-keyword">the</span> valid range <span class="hljs-keyword">for</span> imshow <span class="hljs-keyword">with</span> RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] <span class="hljs-keyword">for</span> floats <span class="hljs-keyword">or</span> [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] <span class="hljs-keyword">for</span> integers).
+Clipping input data <span class="hljs-built_in">to</span> <span class="hljs-keyword">the</span> valid range <span class="hljs-keyword">for</span> imshow <span class="hljs-keyword">with</span> RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] <span class="hljs-keyword">for</span> floats <span class="hljs-keyword">or</span> [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] <span class="hljs-keyword">for</span> integers).
+Clipping input data <span class="hljs-built_in">to</span> <span class="hljs-keyword">the</span> valid range <span class="hljs-keyword">for</span> imshow <span class="hljs-keyword">with</span> RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] <span class="hljs-keyword">for</span> floats <span class="hljs-keyword">or</span> [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] <span class="hljs-keyword">for</span> integers).
+</code></pre>
+          <p><img src="lab4/output_52_1.png" alt="png" /></p>
+          <p><img src="lab4/output_52_2.png" alt="png" /></p>
+          <p><img src="lab4/output_52_3.png" alt="png" /></p>
+          <p><img src="lab4/output_52_4.png" alt="png" /></p>
+          <h3
+            id="salvando-as-aproxima-es-e-calculando-a-taxa-de-compress-o-com-o-original"
+          >
+            Salvando as Aproximações e calculando a taxa de compressão com o
+            original
+          </h3>
+          <pre><code class="lang-python"><span class="hljs-comment"># obtenha aproximação de NÍVEL 1 e converte para inteiro</span>
+
+<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> range(<span class="hljs-built_in">len</span>(img)):
+    print(x)
+    C1 = pywt.wavedec2(img_gray[x],<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">1</span>) <span class="hljs-comment"># Um nível de decomposição DWT</span>
+    CA1_ = <span class="hljs-number">255</span> * C1[<span class="hljs-number">0</span>] / np.<span class="hljs-built_in">abs</span>(C1[<span class="hljs-number">0</span>]).<span class="hljs-built_in">max</span>()
+    CA1_ = CA1_.astype(int)
+
+    <span class="hljs-comment"># aproximação de NÍVEL 2 - ja´obtido no item (D) e converte para inteiro</span>
+    CA2_ = <span class="hljs-number">255</span> * cA2 / np.<span class="hljs-built_in">abs</span>(cA2).<span class="hljs-built_in">max</span>()
+    CA2_ = CA2_.astype(int)
+
+    <span class="hljs-comment"># Salva no drive</span>
+    cv.imwrite(<span class="hljs-string">'files/lab4/'</span>+str(x)+<span class="hljs-string">'_DWT_N1_Y.bmp'</span>, CA1_) <span class="hljs-comment"># Aproximação Nível 1 só Y</span>
+    cv.imwrite(<span class="hljs-string">'files/lab4/'</span>+str(x)+<span class="hljs-string">'_DWT_N2_Y.bmp'</span>, CA2_) <span class="hljs-comment"># Aproximação Nível 2 só Y</span>
+</code></pre>
+          <pre><code><span class="hljs-number">0</span>
+<span class="hljs-number">1</span>
+<span class="hljs-number">2</span>
+<span class="hljs-number">3</span>
+</code></pre>
+          <h3
+            id="gravando-o-arquivo-codificado-dwt-idwt-n-vel-1-colorido-calcular-a-taxa-de-compress-o-com-o-original"
+          >
+            Gravando o Arquivo Codificado DWT/IDWT nível 1 Colorido, calcular a
+            taxa de compressão com o original
+          </h3>
+          <pre><code class="lang-python"><span class="hljs-comment"># Aproximação Nível 1 Colorida </span>
+<span class="hljs-comment"># converte RGB para BGR e converte para inteiro</span>
+<span class="hljs-comment"># Reconstrução Nível 1 Colorida </span>
+<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> range(<span class="hljs-built_in">len</span>(img)):
+    A1, L1 = CA_R[x].shape
+    imgrec1_ = np.zeros((A1,L1,<span class="hljs-number">3</span>))
+    imgrec1_[:,:,<span class="hljs-number">0</span>] = imgrec1_list[x][:,:,<span class="hljs-number">2</span>] 
+    imgrec1_[:,:,<span class="hljs-number">1</span>] = imgrec1_list[x][:,:,<span class="hljs-number">1</span>] 
+    imgrec1_[:,:,<span class="hljs-number">2</span>] = imgrec1_list[x][:,:,<span class="hljs-number">0</span>] 
+    imgrec1_ = ( <span class="hljs-number">255</span> * imgrec1_ / np.<span class="hljs-built_in">abs</span>(imgrec1_).<span class="hljs-built_in">max</span>() ).astype(int)  
+    <span class="hljs-comment"># Salva no drive</span>
+    cv.imwrite(<span class="hljs-string">'files/lab4/'</span>+str(x)+<span class="hljs-string">'_DWT_N1_colorida.bmp'</span>, imgrec1_) <span class="hljs-comment"># Gravando Aproximação Nível 1 Colorida</span>
+</code></pre>
+          <h3
+            id="reconstru-o-da-imagem-colorida-e-c-lculo-da-mse-de-cada-plano-de-cor-e-da-psnr-total"
+          >
+            Reconstrução da Imagem colorida e Cálculo da MSE de cada plano de
+            cor e da PSNR total
+          </h3>
+          <pre><code class="lang-python"># Reconstrução Colorida Original
+<span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(len(imgr2)):
+    A,L = imgr2[x].shape
+    imgrec = <span class="hljs-built_in">np</span>.zeros((A,L,<span class="hljs-number">3</span>))
+    imgrec[:,:,<span class="hljs-number">0</span>] = CR_R[x].<span class="hljs-built_in">copy</span>()
+    imgrec[:,:,<span class="hljs-number">1</span>] = CR_G[x].<span class="hljs-built_in">copy</span>()
+    imgrec[:,:,<span class="hljs-number">2</span>] = CR_B[x].<span class="hljs-built_in">copy</span>()
+
+    # # Calculo <span class="hljs-keyword">do</span> MSE colorida
+
+    dif2 = img[x] - imgrec
+    MSE_R = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">0</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">0</span>])))/(A*L) # Erro Quadrático Médio plano R
+    MSE_G = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">1</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">1</span>])))/(A*L) # Erro Quadrático Médio plano G
+    MSE_B = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">2</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">2</span>])))/(A*L) # Erro Quadrático Médio plano B
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">"MSE_Red= {:.2e}"</span>.format(MSE_R), <span class="hljs-string">" MSE_Green= {:.2e}"</span>.format(MSE_G), <span class="hljs-string">" MSE_Blue= {:.2e}"</span>.format(MSE_B)+<span class="hljs-string">"- Imagem "</span>+str(x))
+
+    # # Cálculo da SNR de pico colorida (PSNR), <span class="hljs-number">3</span> camadas R, G e B
+    PSNR = <span class="hljs-number">20</span>*<span class="hljs-built_in">np</span>.log10(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*<span class="hljs-built_in">np</span>.log10(MSE_R + MSE_G + MSE_B)
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">"PSNR total = {:.2f} dB"</span>.format(PSNR))
+
+    plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+    infograf2 = <span class="hljs-string">"Imagem Reconstruída com PSNR total = "</span> + str(<span class="hljs-built_in">np</span>.uint8(PSNR)) + ' dB - Imagem '+str(x)
+    plt.imshow(imgrec); plt.<span class="hljs-built_in">title</span>(infograf2)
+</code></pre>
+          <pre><code>Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">7.85e-24</span>  MSE_Green= <span class="hljs-number">4.55e-24</span>  MSE_Blue= <span class="hljs-number">5.04e-24</span>- Imagem <span class="hljs-number">0</span>
+PSNR total = <span class="hljs-number">275.72</span> dB
+
+
+Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">6.32e-24</span>  MSE_Green= <span class="hljs-number">6.10e-24</span>  MSE_Blue= <span class="hljs-number">5.71e-24</span>- Imagem <span class="hljs-number">1</span>
+PSNR total = <span class="hljs-number">275.54</span> dB
+
+
+Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">6.45e-24</span>  MSE_Green= <span class="hljs-number">5.33e-24</span>  MSE_Blue= <span class="hljs-number">3.33e-24</span>- Imagem <span class="hljs-number">2</span>
+PSNR total = <span class="hljs-number">276.34</span> dB
+
+
+Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">4.17e-24</span>  MSE_Green= <span class="hljs-number">5.11e-24</span>  MSE_Blue= <span class="hljs-number">4.63e-24</span>- Imagem <span class="hljs-number">3</span>
+PSNR total = <span class="hljs-number">276.70</span> dB
+</code></pre>
+          <p><img src="lab4/output_58_8.png" alt="png" /></p>
+          <p><img src="lab4/output_58_9.png" alt="png" /></p>
+          <p><img src="lab4/output_58_10.png" alt="png" /></p>
+          <p><img src="lab4/output_58_11.png" alt="png" /></p>
+          <h1 id="i-repetindo-etapas-com-foto-montagem">
+            I. Repetindo etapas com foto montagem
+          </h1>
+          <h3 id="com-componente-y">Com componente Y</h3>
+          <pre><code class="lang-python">img = mpimg.imread('files/lab4/montagem.jpg')
+
+img_gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+
+coefs2 = pywt.dwt2(img_gray,'haar', mode='periodization')  #<span class="hljs-number">1</span> nível de DWT
+(cA, (cH, cV, cD)) = coefs2 #Separando os coeficientes
+imgr = pywt.idwt2(coefs2, 'haar', mode = 'periodization')  #<span class="hljs-number">1</span> nível de IDWT
+
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA,'gray'); plt.title(<span class="hljs-string">"CA - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV,'gray'); plt.title(<span class="hljs-string">"CV - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH,'gray'); plt.title(<span class="hljs-string">"CH - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD,'gray'); plt.title(<span class="hljs-string">"CD - Bordas Diagonais"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'CD - Bordas Diagonais'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_61_1.png" alt="png" /></p>
+          <pre><code class="lang-python"># Calculo da MSE P&amp;B
+A, L, Camadas = img.shape
+dif = img_gray - imgr
+MSE_gray = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif,<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif)))/(A*L)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"MSE_Y = {:.2e}"</span>.format(MSE_gray))
+PSNR_Y = <span class="hljs-number">20</span>*<span class="hljs-built_in">np</span>.log10(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*<span class="hljs-built_in">np</span>.log10(MSE_gray)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"PSNR_Luma = {:.2f} dB"</span>.format(PSNR_Y))
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+infograf = <span class="hljs-string">"Imagem Reconstruída de Luminância (Y) com PSNR = "</span> + str(<span class="hljs-built_in">np</span>.uint8(PSNR_Y)) + ' dB'
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(img_gray,'gray'); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Original P&amp;B"</span>)
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr,'gray'); plt.<span class="hljs-built_in">title</span>(infograf)
+</code></pre>
+          <pre><code>MSE_Y = <span class="hljs-number">4.75e-24</span>
+PSNR_Luma = <span class="hljs-number">281.36</span> dB
+
+
+
+
+
+Text(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, 'Imagem Reconstruída de Luminância (Y) com PSNR = <span class="hljs-number">25</span> dB')
+</code></pre>
+          <p><img src="lab4/output_62_2.png" alt="png" /></p>
+          <pre><code class="lang-python">C = pywt.wavedec<span class="hljs-number">2</span><span class="hljs-comment">(img_gray,'haar', mode = 'symmetric', level=2)</span> <span class="hljs-attr"># Dois níveis de decomposição DWT
+imgr2</span> = pywt.waverec<span class="hljs-number">2</span><span class="hljs-comment">(C, 'haar', mode = 'symmetric')</span> <span class="hljs-attr"># Dois níveis de IDWT
+
+# Para extrair os coeficientes de cada nível
+cA2</span> = C[<span class="hljs-number">0</span>]  <span class="hljs-attr"># Coeficientes de Aproximação nível 2</span>
+<span class="hljs-comment">(cH1, cV1, cD1)</span> = C[<span class="hljs-number">-1</span>] <span class="hljs-attr"># Coeficientes de Detalhes nível 1</span>
+<span class="hljs-comment">(cH2, cV2, cD2)</span> = C[<span class="hljs-number">-2</span>] <span class="hljs-attr"># Coeficientes de Detalhes nível 2</span>
+
+<span class="hljs-attr"># Imagem Original
+img_gray = cv.cvtColor(img, cv.COLOR_BGR2</span>GRAY)
+
+<span class="hljs-attr"># Plot dos coeficientes do nível 2</span>
+plt.figure<span class="hljs-comment">(figsize=(5,5)</span>)
+plt.subplot<span class="hljs-comment">(2,2,1)</span>
+plt.imshow<span class="hljs-comment">(cA2, 'gray')</span>; plt.title<span class="hljs-comment">('Ap. N2: CA2')</span>
+plt.subplot<span class="hljs-comment">(2,2,2)</span>
+plt.imshow<span class="hljs-comment">(cV2, 'gray')</span>; plt.title<span class="hljs-comment">('B. V. N2: CV2')</span>
+plt.subplot<span class="hljs-comment">(2,2,3)</span>
+plt.imshow<span class="hljs-comment">(cH2, 'gray')</span>; plt.title<span class="hljs-comment">('B. H. N2: CH2')</span>
+plt.subplot<span class="hljs-comment">(2,2,4)</span>
+plt.imshow<span class="hljs-comment">(cD2, 'gray')</span>; plt.title<span class="hljs-comment">('B. D. N2: CD2')</span>
+
+<span class="hljs-attr"># Plot Original e Reconstrução
+plt.figure(figsize=(20</span>,<span class="hljs-number">10</span>))
+plt.subplot<span class="hljs-comment">(1,2,1)</span>; plt.imshow<span class="hljs-comment">(img_gray,'gray')</span>; plt.title<span class="hljs-comment">('Imagem Original')</span>
+plt.subplot<span class="hljs-comment">(1,2,2)</span>; plt.imshow<span class="hljs-comment">(imgr2,'gray')</span>; plt.title<span class="hljs-comment">('Imagem Reconstruída')</span>
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_63_1.png" alt="png" /></p>
+          <p><img src="lab4/output_63_2.png" alt="png" /></p>
+          <pre><code class="lang-python">CV1 = cV1.copy()
+CH1 = cH1.copy()
+CD1 = cD1.copy()
+
+CA2 = cA2.copy()
+CH2 = cH2.copy()
+CV2 = cV2.copy()
+CD2 = cD2.copy()
+# Matriz Final Completa
+CA1 = np.bmat(<span class="hljs-string">[[CA2,CV2],[CH2,CD2]]</span>)
+CC = np.bmat(<span class="hljs-string">[[CA1,CV1],[CH1,CD1]]</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(CC,<span class="hljs-string">'gray'</span>)
+plt.title(<span class="hljs-string">'Codificação de Imagem em multinível com função wavedec2()'</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Codificação de Imagem em multinível com função wavedec2()'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_64_1.png" alt="png" /></p>
+          <pre><code class="lang-python"><span class="hljs-comment"># Imagem Original</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(img); plt.title(<span class="hljs-string">"Imagem Original"</span>)
+
+<span class="hljs-comment"># Codificação por planos de cores</span>
+<span class="hljs-comment"># Plano Vermelho</span>
+coefs_R = pywt.dwt2(img[:,:,<span class="hljs-number">0</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT R</span>
+(cA_R, (cH_R, cV_R, cD_R)) = coefs_R <span class="hljs-comment">#Separando os coeficientes</span>
+cr_R = pywt.idwt2(coefs_R, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT R</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CA_Red - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CV_Red - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CH_Red - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CD_Red - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_R, <span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Red"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída Red'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_65_1.png" alt="png" /></p>
+          <p><img src="lab4/output_65_2.png" alt="png" /></p>
+          <p><img src="lab4/output_65_3.png" alt="png" /></p>
+          <pre><code class="lang-python"># Plano Verde
+coefs_G = pywt.dwt2(img[:,:,<span class="hljs-number">1</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de DWT G
+(cA_G, (cH_G, cV_G, cD_G)) = coefs_G #Separando os coeficientes
+cr_G = pywt.idwt2(coefs_G, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de IDWT G
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CA_Green - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CV_Green - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CH_Green - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_G,<span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CD_Green - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_G, <span class="hljs-string">'Greens_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Reconstruída Green"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída Green'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_66_1.png" alt="png" /></p>
+          <p><img src="lab4/output_66_2.png" alt="png" /></p>
+          <pre><code class="lang-python"># Plano Azul
+coefs_B = pywt.dwt2(img[:,:,<span class="hljs-number">2</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de DWT B
+(cA_B, (cH_B, cV_B, cD_B)) = coefs_B #Separando os coeficientes
+cr_B = pywt.idwt2(coefs_B, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  #<span class="hljs-number">1</span> nível de IDWT B
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CA_Blue - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CV_Blue - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CH_Blue - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_B,<span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"CD_Blue - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_B, <span class="hljs-string">'Blues_r'</span>); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Reconstruída Blue"</span>)
+</code></pre>
+          <pre><code><span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída Blue'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_67_1.png" alt="png" /></p>
+          <p><img src="lab4/output_67_2.png" alt="png" /></p>
+          <pre><code class="lang-python"># Reconstrução Nível <span class="hljs-number">1</span> Colorida 
+A1, L1 = cA_R.shape
+imgrec1 = <span class="hljs-built_in">np</span>.zeros((A1,L1,<span class="hljs-number">3</span>))
+imgrec1[:,:,<span class="hljs-number">0</span>] = cA_R.<span class="hljs-built_in">copy</span>()
+imgrec1[:,:,<span class="hljs-number">1</span>] = cA_G.<span class="hljs-built_in">copy</span>()
+imgrec1[:,:,<span class="hljs-number">2</span>] = cA_B.<span class="hljs-built_in">copy</span>()
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.imshow(imgrec1); plt.<span class="hljs-built_in">title</span>(<span class="hljs-string">"Imagem Reconstruída DWT/IDWT Nível 1"</span>)
+</code></pre>
+          <pre><code>Clipping <span class="hljs-selector-tag">input</span> data to the valid range <span class="hljs-keyword">for</span> imshow with RGB data ([<span class="hljs-number">0</span>..<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> floats or [<span class="hljs-number">0</span>..<span class="hljs-number">255</span>] <span class="hljs-keyword">for</span> integers).
+
+
+
+
+
+<span class="hljs-function"><span class="hljs-title">Text</span><span class="hljs-params">(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, <span class="hljs-string">'Imagem Reconstruída DWT/IDWT Nível 1'</span>)</span></span>
+</code></pre>
+          <p><img src="lab4/output_68_2.png" alt="png" /></p>
+          <pre><code class="lang-python">C1 = pywt.wavedec2(img_gray,<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">1</span>) <span class="hljs-meta"># Um nível de decomposição DWT</span>
+CA1_ = <span class="hljs-number">255</span> * C1[<span class="hljs-number">0</span>] / np.<span class="hljs-built_in">abs</span>(C1[<span class="hljs-number">0</span>]).max()
+CA1_ = CA1_.astype(<span class="hljs-built_in">int</span>)
+
+<span class="hljs-meta"># aproximação de NÍVEL 2 - ja´obtido no item (D) e converte para inteiro</span>
+CA2_ = <span class="hljs-number">255</span> * cA2 / np.<span class="hljs-built_in">abs</span>(cA2).max()
+CA2_ = CA2_.astype(<span class="hljs-built_in">int</span>)
+
+<span class="hljs-meta"># Salva no drive</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/montagem_DWT_N1_Y.bmp'</span>, CA1_) <span class="hljs-meta"># Aproximação Nível 1 só Y</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/montagem_DWT_N2_Y.bmp'</span>, CA2_) <span class="hljs-meta"># Aproximação Nível 2 só Y</span>
+</code></pre>
+          <pre><code><span class="hljs-literal">True</span>
+</code></pre>
+          <pre><code class="lang-python"># Reconstrução Colorida Original
+A,L = imgr2.shape
+imgrec = <span class="hljs-built_in">np</span>.zeros((A,L,<span class="hljs-number">3</span>))
+imgrec[:,:,<span class="hljs-number">0</span>] = cr_R.<span class="hljs-built_in">copy</span>()
+imgrec[:,:,<span class="hljs-number">1</span>] = cr_G.<span class="hljs-built_in">copy</span>()
+imgrec[:,:,<span class="hljs-number">2</span>] = cr_B.<span class="hljs-built_in">copy</span>()
+
+# Calculo <span class="hljs-keyword">do</span> MSE colorida
+dif2 = img - imgrec
+MSE_R = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">0</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">0</span>])))/(A*L) # Erro Quadrático Médio plano R
+MSE_G = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">1</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">1</span>])))/(A*L) # Erro Quadrático Médio plano G
+MSE_B = <span class="hljs-built_in">np</span>.<span class="hljs-built_in">sum</span>(<span class="hljs-built_in">np</span>.matmul(dif2[:,:,<span class="hljs-number">2</span>],<span class="hljs-built_in">np</span>.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">2</span>])))/(A*L) # Erro Quadrático Médio plano B
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"MSE_Red= {:.2e}"</span>.format(MSE_R), <span class="hljs-string">" MSE_Green= {:.2e}"</span>.format(MSE_G), <span class="hljs-string">" MSE_Blue= {:.2e}"</span>.format(MSE_B))
+
+# Cálculo da SNR de pico colorida (PSNR), <span class="hljs-number">3</span> camadas R, G e B
+PSNR = <span class="hljs-number">20</span>*<span class="hljs-built_in">np</span>.log10(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*<span class="hljs-built_in">np</span>.log10(MSE_R + MSE_G + MSE_B)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"PSNR total = {:.2f} dB"</span>.format(PSNR))
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+infograf2 = <span class="hljs-string">"Imagem Reconstruída com PSNR total = "</span> + str(<span class="hljs-built_in">np</span>.uint8(PSNR)) + ' dB'
+plt.imshow(imgrec); plt.<span class="hljs-built_in">title</span>(infograf2)
+</code></pre>
+          <pre><code>Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">5.42e-24</span>  MSE_Green= <span class="hljs-number">4.60e-24</span>  MSE_Blue= <span class="hljs-number">4.07e-24</span>
+PSNR total = <span class="hljs-number">276.64</span> dB
+
+
+
+
+
+Text(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, 'Imagem Reconstruída com PSNR total = <span class="hljs-number">20</span> dB')
+</code></pre>
+          <p><img src="lab4/output_70_3.png" alt="png" /></p>
+          <h3 id="com-componetem-cr">Com componetem Cr</h3>
+          <pre><code class="lang-python"><span class="hljs-comment"># Codificação da foto-montagem do grupo em um nível com DWT para a componente Cr</span>
+img = mpimg.imread(<span class="hljs-string">'files/lab4/montagem.jpg'</span>)
+
+ycrcb = cv.cvtColor(img, cv.COLOR_BGR2YCrCb)
+y, <span class="hljs-literal">cr</span>, cb = cv.<span class="hljs-built_in">split</span>(ycrcb)
+
+<span class="hljs-comment">#img_gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)</span>
+
+coefs2 = pywt.dwt2(<span class="hljs-literal">cr</span>,<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT</span>
+(cA, (cH, cV, cD)) = coefs2 <span class="hljs-comment">#Separando os coeficientes</span>
+imgr = pywt.idwt2(coefs2, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT</span>
+
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CA - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CV - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CH - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CD - Bordas Diagonais"</span>)
+
+<span class="hljs-comment"># Calculo da MSE P&amp;B</span>
+A, L, Camadas = img.shape
+dif = <span class="hljs-literal">cr</span> - imgr
+MSE_cr = np.<span class="hljs-built_in">sum</span>(np.matmul(dif,np.<span class="hljs-built_in">transpose</span>(dif)))/(A*L)
+print(<span class="hljs-string">"MSE_cr = {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_cr))
+PSNR_cr = <span class="hljs-number">20</span>*np.<span class="hljs-built_in">log10</span>(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*np.<span class="hljs-built_in">log10</span>(MSE_cr)
+print(<span class="hljs-string">"PSNR_Luma = {:.2f} dB"</span>.<span class="hljs-built_in">format</span>(PSNR_cr))
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+infograf = <span class="hljs-string">"Imagem Reconstruída de Luminância (cr) com PSNR = "</span> + str(np.uint8(PSNR_cr)) + <span class="hljs-string">' dB'</span>
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(<span class="hljs-literal">cr</span>,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"Imagem Original P&amp;B"</span>)
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr,<span class="hljs-string">'gray'</span>); plt.title(infograf)
+
+C = pywt.wavedec2(<span class="hljs-literal">cr</span>,<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">2</span>) <span class="hljs-comment"># Dois níveis de decomposição DWT</span>
+imgr2 = pywt.waverec2(C, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>) <span class="hljs-comment"># Dois níveis de IDWT</span>
+
+<span class="hljs-comment"># Para extrair os coeficientes de cada nível</span>
+cA2 = C[<span class="hljs-number">0</span>]  <span class="hljs-comment"># Coeficientes de Aproximação nível 2</span>
+(cH1, cV1, cD1) = C[<span class="hljs-number">-1</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 1</span>
+(cH2, cV2, cD2) = C[<span class="hljs-number">-2</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 2</span>
+
+<span class="hljs-comment"># Imagem Original</span>
+<span class="hljs-literal">cr</span> = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+<span class="hljs-comment"># Plot dos coeficientes do nível 2</span>
+plt.figure(figsize=(<span class="hljs-number">5</span>,<span class="hljs-number">5</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Ap. N2: CA2'</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. V. N2: CV2'</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. H. N2: CH2'</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. D. N2: CD2'</span>)
+
+<span class="hljs-comment"># Plot Original e Reconstrução</span>
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(<span class="hljs-literal">cr</span>,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Imagem Original'</span>)
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr2,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Imagem Reconstruída'</span>)
+
+CV1 = cV1.copy()
+CH1 = cH1.copy()
+CD1 = cD1.copy()
+
+CA2 = cA2.copy()
+CH2 = cH2.copy()
+CV2 = cV2.copy()
+CD2 = cD2.copy()
+<span class="hljs-comment"># Matriz Final Completa</span>
+CA1 = np.bmat([[CA2,CV2],[CH2,CD2]])
+CC = np.bmat([[CA1,CV1],[CH1,CD1]])
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(CC,<span class="hljs-string">'gray'</span>)
+plt.title(<span class="hljs-string">'Codificação de Imagem em multinível com função wavedec2()'</span>)
+
+<span class="hljs-comment"># Imagem Original</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(img); plt.title(<span class="hljs-string">"Imagem Original"</span>)
+
+<span class="hljs-comment"># Codificação por planos de cores</span>
+<span class="hljs-comment"># Plano Vermelho</span>
+coefs_R = pywt.dwt2(img[:,:,<span class="hljs-number">0</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT R</span>
+(cA_R, (cH_R, cV_R, cD_R)) = coefs_R <span class="hljs-comment">#Separando os coeficientes</span>
+cr_R = pywt.idwt2(coefs_R, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT R</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CA_Red - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CV_Red - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CH_Red - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CD_Red - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_R, <span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Red"</span>)
+
+<span class="hljs-comment"># Plano Verde</span>
+coefs_G = pywt.dwt2(img[:,:,<span class="hljs-number">1</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT G</span>
+(cA_G, (cH_G, cV_G, cD_G)) = coefs_G <span class="hljs-comment">#Separando os coeficientes</span>
+cr_G = pywt.idwt2(coefs_G, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT G</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CA_Green - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CV_Green - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CH_Green - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CD_Green - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_G, <span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Green"</span>)
+
+<span class="hljs-comment"># Plano Azul</span>
+coefs_B = pywt.dwt2(img[:,:,<span class="hljs-number">2</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT B</span>
+(cA_B, (cH_B, cV_B, cD_B)) = coefs_B <span class="hljs-comment">#Separando os coeficientes</span>
+cr_B = pywt.idwt2(coefs_B, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT B</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CA_Blue - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CV_Blue - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CH_Blue - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CD_Blue - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_B, <span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Blue"</span>)
+
+<span class="hljs-comment"># Reconstrução Nível 1 Colorida </span>
+A1, L1 = cA_R.shape
+imgrec1 = np.zeros((A1,L1,<span class="hljs-number">3</span>))
+imgrec1[:,:,<span class="hljs-number">0</span>] = cA_R.copy()
+imgrec1[:,:,<span class="hljs-number">1</span>] = cA_G.copy()
+imgrec1[:,:,<span class="hljs-number">2</span>] = cA_B.copy()
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.imshow(imgrec1); plt.title(<span class="hljs-string">"Imagem Reconstruída DWT/IDWT Nível 1"</span>)
+
+<span class="hljs-comment"># obtenha aproximação de NÍVEL 1 e converte para inteiro</span>
+C1 = pywt.wavedec2(img_gray,<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">1</span>) <span class="hljs-comment"># Um nível de decomposição DWT</span>
+CA1_ = <span class="hljs-number">255</span> * C1[<span class="hljs-number">0</span>] / np.<span class="hljs-built_in">abs</span>(C1[<span class="hljs-number">0</span>]).<span class="hljs-built_in">max</span>()
+CA1_ = CA1_.astype(int)
+
+<span class="hljs-comment"># aproximação de NÍVEL 2 - ja´obtido no item (D) e converte para inteiro</span>
+CA2_ = <span class="hljs-number">255</span> * cA2 / np.<span class="hljs-built_in">abs</span>(cA2).<span class="hljs-built_in">max</span>()
+CA2_ = CA2_.astype(int)
+
+<span class="hljs-comment"># Salva no drive</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/montagem_Cr_DWT_N1_cr.bmp'</span>, CA1_) <span class="hljs-comment"># Aproximação Nível 1 só Y</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/montagem_Cr_DWT_N2_cr.bmp'</span>, CA2_) <span class="hljs-comment"># Aproximação Nível 2 só Y</span>
+
+<span class="hljs-comment"># Aproximação Nível 1 Colorida </span>
+<span class="hljs-comment"># converte RGB para BGR e converte para inteiro</span>
+imgrec1_ = np.zeros((A1,L1,<span class="hljs-number">3</span>))
+imgrec1_[:,:,<span class="hljs-number">0</span>] = imgrec1[:,:,<span class="hljs-number">2</span>] 
+imgrec1_[:,:,<span class="hljs-number">1</span>] = imgrec1[:,:,<span class="hljs-number">1</span>] 
+imgrec1_[:,:,<span class="hljs-number">2</span>] = imgrec1[:,:,<span class="hljs-number">0</span>] 
+imgrec1_ = ( <span class="hljs-number">255</span> * imgrec1_ / np.<span class="hljs-built_in">abs</span>(imgrec1_).<span class="hljs-built_in">max</span>() ).astype(int)
+
+<span class="hljs-comment"># Salva no drive</span>
+cv.imwrite(<span class="hljs-string">'files/lab4//montagem_DWT_N1_colorida_cr.bmp'</span>, imgrec1_) <span class="hljs-comment"># Gravando Aproximação Nível 1 Colorida</span>
+
+
+<span class="hljs-comment"># Reconstrução Colorida Original</span>
+A,L = imgr2.shape
+imgrec = np.zeros((A,L,<span class="hljs-number">3</span>))
+imgrec[:,:,<span class="hljs-number">0</span>] = cr_R.copy()
+imgrec[:,:,<span class="hljs-number">1</span>] = cr_G.copy()
+imgrec[:,:,<span class="hljs-number">2</span>] = cr_B.copy()
+
+<span class="hljs-comment"># Calculo do MSE colorida</span>
+dif2 = img - imgrec
+MSE_R = np.<span class="hljs-built_in">sum</span>(np.matmul(dif2[:,:,<span class="hljs-number">0</span>],np.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">0</span>])))/(A*L) <span class="hljs-comment"># Erro Quadrático Médio plano R</span>
+MSE_G = np.<span class="hljs-built_in">sum</span>(np.matmul(dif2[:,:,<span class="hljs-number">1</span>],np.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">1</span>])))/(A*L) <span class="hljs-comment"># Erro Quadrático Médio plano G</span>
+MSE_B = np.<span class="hljs-built_in">sum</span>(np.matmul(dif2[:,:,<span class="hljs-number">2</span>],np.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">2</span>])))/(A*L) <span class="hljs-comment"># Erro Quadrático Médio plano B</span>
+print(<span class="hljs-string">"MSE_Red= {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_R), <span class="hljs-string">" MSE_Green= {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_G), <span class="hljs-string">" MSE_Blue= {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_B))
+
+<span class="hljs-comment"># Cálculo da SNR de pico colorida (PSNR), 3 camadas R, G e B</span>
+PSNR = <span class="hljs-number">20</span>*np.<span class="hljs-built_in">log10</span>(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*np.<span class="hljs-built_in">log10</span>(MSE_R + MSE_G + MSE_B)
+print(<span class="hljs-string">"PSNR total = {:.2f} dB"</span>.<span class="hljs-built_in">format</span>(PSNR))
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+infograf2 = <span class="hljs-string">"Imagem Reconstruída com PSNR total = "</span> + str(np.uint8(PSNR)) + <span class="hljs-string">' dB'</span>
+plt.imshow(imgrec); plt.title(infograf2)
+</code></pre>
+          <pre><code>MSE_cr = <span class="hljs-number">2.70e-24</span>
+PSNR_Luma = <span class="hljs-number">283.81</span> dB
+
+
+Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">5.42e-24</span>  MSE_Green= <span class="hljs-number">4.60e-24</span>  MSE_Blue= <span class="hljs-number">4.07e-24</span>
+PSNR total = <span class="hljs-number">276.64</span> dB
+
+
+
+
+
+Text(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, 'Imagem Reconstruída com PSNR total = <span class="hljs-number">20</span> dB')
+</code></pre>
+          <p><img src="lab4/output_72_4.png" alt="png" /></p>
+          <p><img src="lab4/output_72_5.png" alt="png" /></p>
+          <p><img src="lab4/output_72_6.png" alt="png" /></p>
+          <p><img src="lab4/output_72_7.png" alt="png" /></p>
+          <p><img src="lab4/output_72_8.png" alt="png" /></p>
+          <p><img src="lab4/output_72_9.png" alt="png" /></p>
+          <p><img src="lab4/output_72_10.png" alt="png" /></p>
+          <p><img src="lab4/output_72_11.png" alt="png" /></p>
+          <p><img src="lab4/output_72_12.png" alt="png" /></p>
+          <p><img src="lab4/output_72_13.png" alt="png" /></p>
+          <p><img src="lab4/output_72_14.png" alt="png" /></p>
+          <p><img src="lab4/output_72_15.png" alt="png" /></p>
+          <p><img src="lab4/output_72_16.png" alt="png" /></p>
+          <p><img src="lab4/output_72_17.png" alt="png" /></p>
+          <h3 id="componente-cb">Componente Cb</h3>
+          <pre><code class="lang-python"><span class="hljs-comment"># Codificação da foto-montagem do grupo em um nível com DWT para a componente Cb</span>
+img = mpimg.imread(<span class="hljs-string">'files/lab4/montagem.jpg'</span>)
+
+ycrcb = cv.cvtColor(img, cv.COLOR_BGR2YCrCb)
+y, <span class="hljs-literal">cr</span>, cb = cv.<span class="hljs-built_in">split</span>(ycrcb)
+
+coefs2 = pywt.dwt2(cb,<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT</span>
+(cA, (cH, cV, cD)) = coefs2 <span class="hljs-comment">#Separando os coeficientes</span>
+imgr = pywt.idwt2(coefs2, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT</span>
+
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CA - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CV - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CH - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"CD - Bordas Diagonais"</span>)
+
+<span class="hljs-comment"># Calculo da MSE P&amp;B</span>
+A, L, Camadas = img.shape
+dif = cb - imgr
+MSE_cb = np.<span class="hljs-built_in">sum</span>(np.matmul(dif,np.<span class="hljs-built_in">transpose</span>(dif)))/(A*L)
+print(<span class="hljs-string">"MSE_cb = {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_cb))
+PSNR_cb = <span class="hljs-number">20</span>*np.<span class="hljs-built_in">log10</span>(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*np.<span class="hljs-built_in">log10</span>(MSE_cb)
+print(<span class="hljs-string">"PSNR_Luma = {:.2f} dB"</span>.<span class="hljs-built_in">format</span>(PSNR_cb))
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+infograf = <span class="hljs-string">"Imagem Reconstruída de Luminância (cb) com PSNR = "</span> + str(np.uint8(PSNR_cb)) + <span class="hljs-string">' dB'</span>
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(cb,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">"Imagem Original P&amp;B"</span>)
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr,<span class="hljs-string">'gray'</span>); plt.title(infograf)
+
+C = pywt.wavedec2(cb,<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">2</span>) <span class="hljs-comment"># Dois níveis de decomposição DWT</span>
+imgr2 = pywt.waverec2(C, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>) <span class="hljs-comment"># Dois níveis de IDWT</span>
+
+<span class="hljs-comment"># Para extrair os coeficientes de cada nível</span>
+cA2 = C[<span class="hljs-number">0</span>]  <span class="hljs-comment"># Coeficientes de Aproximação nível 2</span>
+(cH1, cV1, cD1) = C[<span class="hljs-number">-1</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 1</span>
+(cH2, cV2, cD2) = C[<span class="hljs-number">-2</span>] <span class="hljs-comment"># Coeficientes de Detalhes nível 2</span>
+
+<span class="hljs-comment"># Imagem Original</span>
+cb = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+<span class="hljs-comment"># Plot dos coeficientes do nível 2</span>
+plt.figure(figsize=(<span class="hljs-number">5</span>,<span class="hljs-number">5</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Ap. N2: CA2'</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. V. N2: CV2'</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. H. N2: CH2'</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD2, <span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'B. D. N2: CD2'</span>)
+
+<span class="hljs-comment"># Plot Original e Reconstrução</span>
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">10</span>))
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>); plt.imshow(cb,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Imagem Original'</span>)
+plt.subplot(<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>); plt.imshow(imgr2,<span class="hljs-string">'gray'</span>); plt.title(<span class="hljs-string">'Imagem Reconstruída'</span>)
+
+CV1 = cV1.copy()
+CH1 = cH1.copy()
+CD1 = cD1.copy()
+
+CA2 = cA2.copy()
+CH2 = cH2.copy()
+CV2 = cV2.copy()
+CD2 = cD2.copy()
+<span class="hljs-comment"># Matriz Final Completa</span>
+CA1 = np.bmat([[CA2,CV2],[CH2,CD2]])
+CC = np.bmat([[CA1,CV1],[CH1,CD1]])
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(CC,<span class="hljs-string">'gray'</span>)
+plt.title(<span class="hljs-string">'Codificação de Imagem em multinível com função wavedec2()'</span>)
+
+<span class="hljs-comment"># Imagem Original</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(img); plt.title(<span class="hljs-string">"Imagem Original"</span>)
+
+<span class="hljs-comment"># Codificação por planos de cores</span>
+<span class="hljs-comment"># Plano Vermelho</span>
+coefs_R = pywt.dwt2(img[:,:,<span class="hljs-number">0</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT R</span>
+(cA_R, (cH_R, cV_R, cD_R)) = coefs_R <span class="hljs-comment">#Separando os coeficientes</span>
+cr_R = pywt.idwt2(coefs_R, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT R</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CA_Red - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CV_Red - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CH_Red - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_R,<span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"CD_Red - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_R, <span class="hljs-string">'Reds_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Red"</span>)
+
+<span class="hljs-comment"># Plano Verde</span>
+coefs_G = pywt.dwt2(img[:,:,<span class="hljs-number">1</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT G</span>
+(cA_G, (cH_G, cV_G, cD_G)) = coefs_G <span class="hljs-comment">#Separando os coeficientes</span>
+cr_G = pywt.idwt2(coefs_G, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT G</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CA_Green - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CV_Green - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CH_Green - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_G,<span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"CD_Green - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_G, <span class="hljs-string">'Greens_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Green"</span>)
+
+<span class="hljs-comment"># Plano Azul</span>
+coefs_B = pywt.dwt2(img[:,:,<span class="hljs-number">2</span>],<span class="hljs-string">'haar'</span>, mode=<span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de DWT B</span>
+(cA_B, (cH_B, cV_B, cD_B)) = coefs_B <span class="hljs-comment">#Separando os coeficientes</span>
+cr_B = pywt.idwt2(coefs_B, <span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'periodization'</span>)  <span class="hljs-comment">#1 nível de IDWT B</span>
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">1</span>)
+plt.imshow(cA_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CA_Blue - Aproximação"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">2</span>)
+plt.imshow(cV_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CV_Blue - Bordas Verticais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>)
+plt.imshow(cH_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CH_Blue - Bordas Horizontais"</span>)
+plt.subplot(<span class="hljs-number">2</span>,<span class="hljs-number">2</span>,<span class="hljs-number">4</span>)
+plt.imshow(cD_B,<span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"CD_Blue - Bordas Diagonais"</span>)
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+plt.imshow(cr_B, <span class="hljs-string">'Blues_r'</span>); plt.title(<span class="hljs-string">"Imagem Reconstruída Blue"</span>)
+
+<span class="hljs-comment"># Reconstrução Nível 1 Colorida </span>
+A1, L1 = cA_R.shape
+imgrec1 = np.zeros((A1,L1,<span class="hljs-number">3</span>))
+imgrec1[:,:,<span class="hljs-number">0</span>] = cA_R.copy()
+imgrec1[:,:,<span class="hljs-number">1</span>] = cA_G.copy()
+imgrec1[:,:,<span class="hljs-number">2</span>] = cA_B.copy()
+plt.figure(figsize=(<span class="hljs-number">10</span>,<span class="hljs-number">10</span>))
+plt.imshow(imgrec1); plt.title(<span class="hljs-string">"Imagem Reconstruída DWT/IDWT Nível 1"</span>)
+
+<span class="hljs-comment"># obtenha aproximação de NÍVEL 1 e converte para inteiro</span>
+C1 = pywt.wavedec2(cb,<span class="hljs-string">'haar'</span>, mode = <span class="hljs-string">'symmetric'</span>, level=<span class="hljs-number">1</span>) <span class="hljs-comment"># Um nível de decomposição DWT</span>
+CA1_ = <span class="hljs-number">255</span> * C1[<span class="hljs-number">0</span>] / np.<span class="hljs-built_in">abs</span>(C1[<span class="hljs-number">0</span>]).<span class="hljs-built_in">max</span>()
+CA1_ = CA1_.astype(int)
+
+<span class="hljs-comment"># aproximação de NÍVEL 2 - ja´obtido no item (D) e converte para inteiro</span>
+CA2_ = <span class="hljs-number">255</span> * cA2 / np.<span class="hljs-built_in">abs</span>(cA2).<span class="hljs-built_in">max</span>()
+CA2_ = CA2_.astype(int)
+
+<span class="hljs-comment"># Salva no drive</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/montagemGrupo_DWT_N1_cb.bmp'</span>, CA1_) <span class="hljs-comment"># Aproximação Nível 1 só Y</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/montagemGrupo_DWT_N2_cb.bmp'</span>, CA2_) <span class="hljs-comment"># Aproximação Nível 2 só Y</span>
+
+<span class="hljs-comment"># Aproximação Nível 1 Colorida </span>
+<span class="hljs-comment"># converte RGB para BGR e converte para inteiro</span>
+imgrec1_ = np.zeros((A1,L1,<span class="hljs-number">3</span>))
+imgrec1_[:,:,<span class="hljs-number">0</span>] = imgrec1[:,:,<span class="hljs-number">2</span>] 
+imgrec1_[:,:,<span class="hljs-number">1</span>] = imgrec1[:,:,<span class="hljs-number">1</span>] 
+imgrec1_[:,:,<span class="hljs-number">2</span>] = imgrec1[:,:,<span class="hljs-number">0</span>] 
+imgrec1_ = ( <span class="hljs-number">255</span> * imgrec1_ / np.<span class="hljs-built_in">abs</span>(imgrec1_).<span class="hljs-built_in">max</span>() ).astype(int)
+
+<span class="hljs-comment"># Salva no drive</span>
+cv.imwrite(<span class="hljs-string">'files/lab4/montagemGrupo_DWT_N1_colorida_cb.bmp'</span>, imgrec1_) 
+
+
+<span class="hljs-comment"># Reconstrução Colorida Original</span>
+A,L = imgr2.shape
+imgrec = np.zeros((A,L,<span class="hljs-number">3</span>))
+imgrec[:,:,<span class="hljs-number">0</span>] = cr_R.copy()
+imgrec[:,:,<span class="hljs-number">1</span>] = cr_G.copy()
+imgrec[:,:,<span class="hljs-number">2</span>] = cr_B.copy()
+
+<span class="hljs-comment"># Calculo do MSE colorida</span>
+dif2 = img - imgrec
+MSE_R = np.<span class="hljs-built_in">sum</span>(np.matmul(dif2[:,:,<span class="hljs-number">0</span>],np.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">0</span>])))/(A*L) <span class="hljs-comment"># Erro Quadrático Médio plano R</span>
+MSE_G = np.<span class="hljs-built_in">sum</span>(np.matmul(dif2[:,:,<span class="hljs-number">1</span>],np.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">1</span>])))/(A*L) <span class="hljs-comment"># Erro Quadrático Médio plano G</span>
+MSE_B = np.<span class="hljs-built_in">sum</span>(np.matmul(dif2[:,:,<span class="hljs-number">2</span>],np.<span class="hljs-built_in">transpose</span>(dif2[:,:,<span class="hljs-number">2</span>])))/(A*L) <span class="hljs-comment"># Erro Quadrático Médio plano B</span>
+print(<span class="hljs-string">"MSE_Red= {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_R), <span class="hljs-string">" MSE_Green= {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_G), <span class="hljs-string">" MSE_Blue= {:.2e}"</span>.<span class="hljs-built_in">format</span>(MSE_B))
+
+<span class="hljs-comment"># Cálculo da SNR de pico colorida (PSNR), 3 camadas R, G e B</span>
+PSNR = <span class="hljs-number">20</span>*np.<span class="hljs-built_in">log10</span>(<span class="hljs-number">255</span>) - <span class="hljs-number">10</span>*np.<span class="hljs-built_in">log10</span>(MSE_R + MSE_G + MSE_B)
+print(<span class="hljs-string">"PSNR total = {:.2f} dB"</span>.<span class="hljs-built_in">format</span>(PSNR))
+
+plt.figure(figsize=(<span class="hljs-number">20</span>,<span class="hljs-number">20</span>))
+infograf2 = <span class="hljs-string">"Imagem Reconstruída com PSNR total = "</span> + str(np.uint8(PSNR)) + <span class="hljs-string">' dB'</span>
+plt.imshow(imgrec); plt.title(infograf2)
+</code></pre>
+          <pre><code>MSE_cb = <span class="hljs-number">3.62e-24</span>
+PSNR_Luma = <span class="hljs-number">282.54</span> dB
+
+
+Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+Clipping input data to the valid range for imshow with RGB data ([<span class="hljs-number">0.</span><span class="hljs-number">.1</span>] for floats or [<span class="hljs-number">0.</span><span class="hljs-number">.255</span>] for integers).
+
+
+MSE_Red= <span class="hljs-number">5.42e-24</span>  MSE_Green= <span class="hljs-number">4.60e-24</span>  MSE_Blue= <span class="hljs-number">4.07e-24</span>
+PSNR total = <span class="hljs-number">276.64</span> dB
+
+
+
+
+
+Text(<span class="hljs-number">0.5</span>, <span class="hljs-number">1.0</span>, 'Imagem Reconstruída com PSNR total = <span class="hljs-number">20</span> dB')
+</code></pre>
+          <p><img src="lab4/output_74_4.png" alt="png" /></p>
+          <p><img src="lab4/output_74_5.png" alt="png" /></p>
+          <p><img src="lab4/output_74_6.png" alt="png" /></p>
+          <p><img src="lab4/output_74_7.png" alt="png" /></p>
+          <p><img src="lab4/output_74_8.png" alt="png" /></p>
+          <p><img src="lab4/output_74_9.png" alt="png" /></p>
+          <p><img src="lab4/output_74_10.png" alt="png" /></p>
+          <p><img src="lab4/output_74_11.png" alt="png" /></p>
+          <p><img src="lab4/output_74_12.png" alt="png" /></p>
+          <p><img src="lab4/output_74_13.png" alt="png" /></p>
+          <p><img src="lab4/output_74_14.png" alt="png" /></p>
+          <p><img src="lab4/output_74_15.png" alt="png" /></p>
+          <p><img src="lab4/output_74_16.png" alt="png" /></p>
+          <p><img src="lab4/output_74_17.png" alt="png" /></p> -->
+
+          <!-- <iframe
             src="https://nbviewer.org/github/ericsouza/csm-ufabc/blob/master/labs_notebooks/lab4_notebook.ipynb"
             style="width: 100%; height: 600px; float: center"
+          ></iframe> -->
+          
+          Essa página pode demorar para carregar. Caso dê erro o notebook pode ser baixado pelo github nesse <a href="https://github.com/ericsouza/csm-ufabc/raw/master/labs_notebooks/lab4_notebook.ipynb">link</a>
+
+          <iframe
+            src="https://hubblebee.fly.dev/csm/lab4_notebook.html"
+            style="width: 100%; height: 130000px; float: center"
           ></iframe>
 
           <a href="../index.html">
